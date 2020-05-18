@@ -5,7 +5,7 @@
 #include<stdlib.h>
 #include<inttypes.h>
 
-#define legth_of_parts 20
+#define LENGTH_OF_PARTS 20
 
 #define ERR_OK 0
 #define ERR_SMALL_SHIFT -1
@@ -19,7 +19,7 @@ extern int bb_errno;
 
 struct BigBool
 {
-    uint8_t parts[legth_of_parts];
+    uint8_t parts[LENGTH_OF_PARTS];
     int last_bit;
     int last_part;
 };
@@ -34,13 +34,13 @@ typedef struct BigBool bb;
   * Funtion: left_shift
   * -------------------
   * Do left shift of bool vector
-  * 
+  *
   *        vector: pointer to a vector
   * size_of_shift: the number by which the left shift will be made
-  * 
+  *
   * returns: a pointer to a vector in case of success
   *          NULL in case of an error
-  * 
+  *
   * if an error occurs the bb_errno variable is set to:
   *     ERR_MEM_NOT_ALLOC — memory allocation error
   *     ERR_NULL_INPUT    — zero incoming data
@@ -80,7 +80,9 @@ bb* rigth_shift (bb* vector, int size_of_shift);
  *          NULL in case of an error
  *
  * if an error occurs the bb_errno variable is set to:
+ *     ERR_MEM_NOT_ALLOC — memory allocation error
  *     ERR_NULL_INPUT    — zero incoming data
+ *     ERR_BIG_SHIFT     — too big a shift, going over the border
  *     ERR_SMALL_SHIFT   — shift less than 1
  */
 bb* cycle_left_shift (bb* vector, int size_of_shift);
@@ -97,7 +99,9 @@ bb* cycle_left_shift (bb* vector, int size_of_shift);
  *          NULL in case of an error
  *
  * if an error occurs the bb_errno variable is set to:
+ *     ERR_MEM_NOT_ALLOC — memory allocation error
  *     ERR_NULL_INPUT    — zero incoming data
+ *     ERR_BIG_SHIFT     — too big a shift, going over the border
  *     ERR_SMALL_SHIFT   — shift less than 1
  */
 bb* cycle_rigth_shift (bb* vector, int size_of_shift);

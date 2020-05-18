@@ -4,14 +4,14 @@ int bb_errno = ERR_OK;
 
 bb* left_shift (bb* vector, int size_of_shift)
 {
-    if (vector==NULL)
+    if (vector == NULL)
     {
         bb_errno = ERR_NULL_INPUT;
         return NULL;
     }
 
     //checking if the shift is possible
-    if (size_of_shift > (legth_of_parts - 1 - vector->last_part) * 8 + 7 - vector->last_bit)
+    if (size_of_shift > (LENGTH_OF_PARTS - 1 - vector->last_part) * 8 + 7 - vector->last_bit)
     {
         bb_errno = ERR_BIG_SHIFT;
         return NULL;
@@ -30,7 +30,7 @@ bb* left_shift (bb* vector, int size_of_shift)
         bb_errno = ERR_MEM_NOT_ALLOC;
         return NULL;
     }
-    
+
     vector1->last_bit = 0;
     vector1->last_part = 0;
     uint8_t last_part_of_bits = 0;
@@ -48,9 +48,9 @@ bb* left_shift (bb* vector, int size_of_shift)
         vector1->last_part++;
         vector1->parts[size_of_shift / 8 + vector->last_part + 1] |= last_part_of_bits;
     }
-    
+
     //calculating the dimension of the resulting vector after the shift
-    vector1->last_bit += (vector->last_bit + size_of_shift % 8)%8;
+    vector1->last_bit += (vector->last_bit + size_of_shift % 8) % 8;
     vector1->last_part += vector->last_part + size_of_shift / 8;
 
     return vector1;
@@ -95,7 +95,7 @@ bb* rigth_shift (bb* vector, int size_of_shift)
     vector1->parts[0] = vector->parts[size_of_shift / 8] >> (size_of_shift % 8);
 
     //right shift of the other parts
-    for (int i = size_of_shift / 8+1; i <= vector->last_part; i++)
+    for (int i = size_of_shift / 8 + 1; i <= vector->last_part; i++)
     {
         first_part_of_bits = vector->parts[i] << (8 - size_of_shift % 8);
         vector1->parts[i - size_of_shift / 8] = vector->parts[i] >> (size_of_shift % 8);
@@ -103,9 +103,9 @@ bb* rigth_shift (bb* vector, int size_of_shift)
     }
 
     //calculating the dimension of the resulting vector after the shift
-    vector1->last_part = (vector->last_part*8+vector->last_bit - size_of_shift)/8;
+    vector1->last_part = (vector->last_part * 8 + vector->last_bit - size_of_shift) / 8;
     vector1->last_bit = (vector->last_part * 8 + vector->last_bit - size_of_shift) % 8;
-    
+
     return vector1;
 }
 
@@ -120,25 +120,22 @@ bb* bb_from_string (char* string)
     bb* vector = calloc (1, sizeof (bb));
 
     //checking whether memory is allocated
-	if (vector==NULL)
-	{
+    if (vector == NULL)
+    {
         bb_errno = ERR_MEM_NOT_ALLOC;
         return NULL;
-	}
+    }
     vector->last_bit = 0;
     vector->last_part = 0;
 
     //index for the string
     int string_idx = 1;
 
-	//read first bit
-	if (string[0]!='\0')
-	{
-		if (string[0]=='1')
-		{
-			vector->parts[0] |= 1;
-		}
-	}
+    //read first bit
+    if (string[0] != '\0' && string[0] == '1')
+    {
+        vector->parts[0] |= 1;
+    }
 
     //reading bits from a string and writing them to a vector
     while (string[string_idx] != '\0')
@@ -146,25 +143,25 @@ bb* bb_from_string (char* string)
         //checks if the string contains something other than 1 and 0
         if (string[string_idx] == '1' || string[string_idx] == '0')
         {
-			vector=left_shift (vector, 1);
+            vector = left_shift (vector, 1);
 
             //adding a bit to the end
-			vector->parts[0] |= (string[string_idx]-48);
+            vector->parts[0] |= (string[string_idx] - '0');
         }
         //if it contains it we output a message
         else
         {
-			bb_errno = ERR_WRONG_CHARS;
-			goto free;
+            bb_errno = ERR_WRONG_CHARS;
+            goto free;
         }
-		string_idx++;
+        string_idx++;
     }
 
     return vector;
 
 free:
-	free (vector);
-	return NULL;
+    free (vector);
+    return NULL;
 }
 
 char* bb_to_string (bb* vector)
@@ -177,27 +174,27 @@ char* bb_to_string (bb* vector)
 
     //initializing a string and its index
     int string_idx = 0;
-    char* string = calloc (1,(vector->last_part*8+vector->last_bit) * sizeof (char));
+    char* string = calloc (1, (vector->last_part * 8 + vector->last_bit) * sizeof (char));
 
     //checking whether memory is allocated
-	if (string==NULL)
-	{
+    if (string == NULL)
+    {
         bb_errno = ERR_MEM_NOT_ALLOC;
         return NULL;
-	}
+    }
 
     //separate addition of bits from the first part since it can be of different lengths
     for (int i = vector->last_bit; i >= 0; i--)
     {
-		if (vector->parts[vector->last_part] & (1 << i))
-		{
-			string[string_idx] = '1';
-		}
-		else
-		{
-			string[string_idx] = '0';
-		}
-		string_idx++;
+        if (vector->parts[vector->last_part] & (1 << i))
+        {
+            string[string_idx] = '1';
+        }
+        else
+        {
+            string[string_idx] = '0';
+        }
+        string_idx++;
     }
 
     //adding bits from other parts
@@ -205,15 +202,15 @@ char* bb_to_string (bb* vector)
     {
         for (int j = 7; j >= 0; j--)
         {
-			if (vector->parts[i] & (1 << j))
-			{
-				string[string_idx] = '1';
-			}
-			else
-			{
-				string[string_idx] = '0';
-			}
-			string_idx++;
+            if (vector->parts[i] & (1 << j))
+            {
+                string[string_idx] = '1';
+            }
+            else
+            {
+                string[string_idx] = '0';
+            }
+            string_idx++;
         }
     }
 
@@ -225,22 +222,22 @@ char* bb_to_string (bb* vector)
 
 bb* bb_disjunction (bb* vector1, bb* vector2)
 {
-    if (vector1==NULL || vector2==NULL)
+    if (vector1 == NULL || vector2 == NULL)
     {
         bb_errno = ERR_NULL_INPUT;
         return NULL;
     }
 
     //if the length of the second vector is longer than the first one then swap them
-    if (vector2->last_part*8+vector2->last_bit>vector1->last_part * 8 + vector1->last_bit)
+    if (vector2->last_part * 8 + vector2->last_bit > vector1->last_part * 8 + vector1->last_bit)
     {
         return bb_disjunction (vector2, vector1);
     }
 
-    bb* vector = calloc (1,sizeof (bb));
+    bb* vector = calloc (1, sizeof (bb));
 
     //checking whether memory is allocated
-    if (vector==NULL)
+    if (vector == NULL)
     {
         bb_errno = ERR_MEM_NOT_ALLOC;
         return NULL;
@@ -253,7 +250,7 @@ bb* bb_disjunction (bb* vector1, bb* vector2)
     {
         vector->parts[i] = vector1->parts[i] | vector2->parts[i];
     }
-    for (int i = vector2->last_part+1; i <= vector1->last_part; i++)
+    for (int i = vector2->last_part + 1; i <= vector1->last_part; i++)
     {
         vector->parts[i] = vector1->parts[i];
     }
@@ -382,8 +379,22 @@ bb* cycle_left_shift (bb* vector, int size_of_shift)
     }
 
     bb* new_vector1 = left_shift (vector, size_of_shift);
-    bb* new_vector2 = rigth_shift (vector, vector->last_part * 8 + vector->last_bit - size_of_shift);
+    if (bb_errno!=ERR_OK)
+    {
+        goto free1;
+    }
+
+    bb* new_vector2 = rigth_shift (vector, vector->last_part * 8 + vector->last_bit+1 - size_of_shift);
+    if (bb_errno != ERR_OK)
+    {
+        goto free2;
+    }
+
     bb* new_vector = bb_disjunction (new_vector1, new_vector2);
+    if (bb_errno != ERR_OK)
+    {
+        goto free3;
+    }
 
     free (new_vector2);
     free (new_vector1);
@@ -392,6 +403,15 @@ bb* cycle_left_shift (bb* vector, int size_of_shift)
     new_vector->last_bit = vector->last_bit;
 
     return new_vector;
+
+free3:
+    free (new_vector);
+free2:
+    free (new_vector2);
+free1:
+    free (new_vector1);
+
+    return NULL;
 }
 
 bb* cycle_rigth_shift (bb* vector, int size_of_shift)
@@ -410,8 +430,23 @@ bb* cycle_rigth_shift (bb* vector, int size_of_shift)
     }
 
     bb* new_vector1 = rigth_shift (vector, size_of_shift);
-    bb* new_vector2 = left_shift (vector, vector->last_part * 8 + vector->last_bit - size_of_shift);
+
+    if (bb_errno != ERR_OK)
+    {
+        goto free1;
+    }
+
+    bb* new_vector2 = left_shift (vector, vector->last_part * 8 + vector->last_bit +1- size_of_shift);
+    if (bb_errno != ERR_OK)
+    {
+        goto free2;
+    }
+
     bb* new_vector = bb_disjunction (new_vector1, new_vector2);
+    if (bb_errno != ERR_OK)
+    {
+        goto free3;
+    }
 
     free (new_vector2);
     free (new_vector1);
@@ -420,4 +455,13 @@ bb* cycle_rigth_shift (bb* vector, int size_of_shift)
     new_vector->last_bit = vector->last_bit;
 
     return new_vector;
+
+free3:
+    free (new_vector);
+free2:
+    free (new_vector2);
+free1:
+    free (new_vector1);
+
+    return NULL;
 }
