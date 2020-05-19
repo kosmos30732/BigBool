@@ -10,106 +10,224 @@
 	printf(RED"%s:%d %s [ERR] %s\n"RESET,\
 		__FILE__, __LINE__, __func__, msg);
 
-int main ()
+int tests_logical_operations ()
 {
-	bb* vector = calloc (1, sizeof (bb));;
-	vector->last_bit = 1;
-	vector->last_part = 0;
-	vector->parts[0] = 2;
+	bb* vec1 = bb_from_string ("100100110101");
+	bb* vec2 = bb_from_string    ("10011101");
 
-	if (strcmp(bb_to_string (vector),"10")!=0)
-	{
-		LOG_ERR ("bb_to_string not work (10!=10)");
-		return 1;
-	}
+	int count = 0;
+	bb* output_vec=NULL;
+	char* output_string = NULL;
 
-	if (strcmp(bb_to_string(bb_from_string ("11010000110")), "11010000110")!= 0)
-	{
-		LOG_ERR ("bb_from_string not work (11010000110 != 11010000110)");
-		return 1;
-	}
 
-	if (strcmp (bb_to_string (left_shift(bb_from_string("1001"),5)), "100100000") != 0)
+	output_vec = bb_conjunction (vec1, vec2);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "000000010101") != 0)
 	{
-		LOG_ERR ("left_shift not work (1001 -5> != 100100000)");
-		return 1;
+		LOG_ERR ("bb_conjunction not work (100100110101 & 10011101 -> != 000000010101)");
+		count++;
 	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
 
-	if (strcmp (bb_to_string (rigth_shift (bb_from_string ("101100001"), 5)), "1011") != 0)
-	{
-		LOG_ERR ("rigth_shift not work (101100001 -5> != 1011)");
-		return 1;
-	}
 
-	if (strcmp (bb_to_string (bb_inversion (bb_from_string ("1011001"))), "0100110") != 0)
+	output_vec = bb_disjunction (vec1, vec2);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "100110111101") != 0)
 	{
-		LOG_ERR ("bb_inversion not work (1011001-> != 0100110)");
-		return 1;
+		LOG_ERR ("bb_disjunction not work (100100110101 | 10011101 -> != 100110111101)");
+		count++;
 	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
 
-	if (strcmp (bb_to_string (bb_xor (bb_from_string ("001"), bb_from_string ("11111"))), "11110") != 0)
-	{
-		LOG_ERR ("bb_xor not work (001 ^ 11111-> != 0100110)");
-		return 1;
-	}
 
-	if (strcmp (bb_to_string (bb_disjunction (bb_from_string ("1111"), bb_from_string ("1000101"))), "1001111") != 0)
+	output_vec = bb_xor (vec1, vec2);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "100110101000") != 0)
 	{
-		LOG_ERR ("bb_disjunction not work (1111 | 1000101 -> != 1001111)");
-		return 1;
+		LOG_ERR ("bb_xor not work (100100110101 ^ 10011101 -> != 100110101000)");
+		count++;
 	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
 
-	if (strcmp (bb_to_string (bb_conjunction (bb_from_string ("0101"), bb_from_string ("1101101"))), "0000101") != 0)
-	{
-		LOG_ERR ("bb_conjunction not work (0101 & 1101101 -> != 0000101)");
-		return 1;
-	}
 
-	if (strcmp (bb_to_string (cycle_left_shift (bb_from_string ("10010100000"), 3)), "10100000100") != 0)
+	output_vec = bb_inversion (vec1);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "011011001010") != 0)
 	{
-		LOG_ERR ("cycle_left_shift not work (10010100000 -3> != 10100000100)");
-		return 1;
+		LOG_ERR ("bb_inversion not work (100100110101 -> != 011011001010)");
+		count++;
 	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
 
-	if (strcmp (bb_to_string (cycle_rigth_shift (bb_from_string ("101100001"), 5)), "000011011") != 0)
+	if (vec1 != NULL) free (vec1);
+	if (vec2 != NULL) free (vec2);
+
+	return count;
+}
+
+int tests_shifts ()
+{
+	bb* vec = bb_from_string ("100001010100110101");
+
+	int count = 0;
+	bb* output_vec = NULL;
+	char* output_string = NULL;
+
+	output_vec = left_shift (vec, 5);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "10000101010011010100000") != 0)
 	{
-		LOG_ERR ("cycle_rigth_shift not work (101100001 -5> != 000011011)");
-		return 1;
+		LOG_ERR ("left_shift not work (100001010100110101 -5> != 10000101010011010100000)");
+		count++;
 	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+
+	output_vec = rigth_shift (vec, 8);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "1000010101") != 0)
+	{
+		LOG_ERR ("rigth_shift not work (100001010100110101 -8> != 1000010101)");
+		count++;
+	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+
+	output_vec = cycle_left_shift (vec, 5);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "101010011010110000") != 0)
+	{
+		LOG_ERR ("cycle_left_shift not work (100001010100110101 -5> != 101010011010110000)");
+		count++;
+	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+
+	output_vec = cycle_rigth_shift (vec, 3);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "101100001010100110") != 0)
+	{
+		LOG_ERR ("cycle_rigth_shift not work (100001010100110101 -3> != 101100001010100110)");
+		count++;
+	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+	if (vec != NULL) free (vec);
+
+	return count;
+}
+
+int tests_errors ()
+{
+	int count = 0;
+	bb* vec = bb_from_string ("11010");
+	bb* vector = NULL;
+	
 
 	bb_from_string ("1101023");
 	if (bb_errno != ERR_WRONG_CHARS)
 	{
 		LOG_ERR ("Don't set ERR_WRONG_CHARS");
-		return 1;
+		count++;
 	}
+	
 
-	left_shift (bb_from_string ("11010"), 0);
+	left_shift (vec, 0);
 	if (bb_errno != ERR_SMALL_SHIFT)
 	{
 		LOG_ERR ("Don't set ERR_SMALL_SHIFT");
-		return 1;
+		count++;
 	}
 
-	left_shift (bb_from_string ("11010"), 100000);
+
+	left_shift (vector, 5);
+	if (bb_errno != ERR_NULL_INPUT)
+	{
+		LOG_ERR ("Don't set ERR_NULL_INPUT");
+		count++;
+	}
+
+
+	left_shift (vec, 100000);
 	if (bb_errno != ERR_BIG_SHIFT)
 	{
 		LOG_ERR ("Don't set ERR_BIG_SHIFT");
-		return 1;
+		count++;
 	}
 
-	rigth_shift (bb_from_string ("11010"), 16);
+
+	rigth_shift (vec, 16);
 	if (bb_errno != ERR_BIG_SHIFT)
 	{
 		LOG_ERR ("Don't set ERR_BIG_SHIFT");
-		return 1;
+		count++;
 	}
 
-	rigth_shift (bb_from_string ("11010"), -2);
+
+	rigth_shift (vec, -2);
 	if (bb_errno != ERR_SMALL_SHIFT)
 	{
 		LOG_ERR ("Don't set ERR_SMALL_SHIFT");
-		return 1;
+		count++;
+	}
+
+	rigth_shift (vector, 2);
+	if (bb_errno != ERR_NULL_INPUT)
+	{
+		LOG_ERR ("Don't set ERR_NULL_INPUT");
+		count++;
+	}
+
+
+	return count;
+}
+
+int tests_transform ()
+{
+	int count = 0;
+	bb *vec1 = NULL, *vec2 = NULL;
+	char* str1 = NULL, * str2 = NULL;
+
+	vec1 = bb_from_uint64_t (1573815);
+	vec2 = bb_from_string ("110000000001110110111");
+	str1 = bb_to_string (vec1);
+	str2 = bb_to_string (vec2);
+	if (strcmp (str1, str2) != 0)
+	{
+		LOG_ERR ("Transformers don't work properly");
+		count++;
+	}
+
+	if (vec1 != NULL) free (vec1);
+	if (vec2 != NULL) free (vec2);
+	if (str1 != NULL) free (str1);
+	if (str2 != NULL) free (str2);
+
+
+	return count;
+}
+
+int main ()
+{
+	int count=0;
+
+	count += tests_shifts ();
+	count += tests_logical_operations();
+	count += tests_errors ();
+
+	if (count>0)
+	{
+		puts ("");
+		printf ("Number of failed tests: %d\n", count);
+		return 0;
 	}
 
 	puts (GREEN"[OK] All ok!"RESET);

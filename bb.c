@@ -152,15 +152,16 @@ bb* bb_from_string (char* string)
         else
         {
             bb_errno = ERR_WRONG_CHARS;
-            goto free;
+            goto cleanup;
         }
         string_idx++;
     }
 
     return vector;
 
-free:
-    free (vector);
+cleanup:
+    if (vector != NULL) free (vector);
+
     return NULL;
 }
 
@@ -174,7 +175,7 @@ char* bb_to_string (bb* vector)
 
     //initializing a string and its index
     int string_idx = 0;
-    char* string = calloc (1, (vector->last_part * 8 + vector->last_bit) * sizeof (char));
+    char* string = calloc (vector->last_part * 8 + vector->last_bit+2, sizeof (char));
 
     //checking whether memory is allocated
     if (string == NULL)
@@ -283,14 +284,19 @@ bb* bb_conjunction (bb* vector1, bb* vector2)
     vector->last_bit = vector1->last_bit;
     vector->last_part = vector1->last_part;
 
+    int length = vector2->last_part;
+
     //conjunction
-    for (int i = 0; i <= vector2->last_part; i++)
+    for (int i = 0; i < length; i++)
     {
         vector->parts[i] = vector1->parts[i] & vector2->parts[i];
     }
-    for (int i = vector2->last_part + 1; i <= vector1->last_part; i++)
+    for (int i = 0; i <= vector2->last_bit; i++)
     {
-        vector->parts[i] = vector1->parts[i];
+        if ((vector1->parts[length] & (1<<i)) && (vector2->parts[length] & (1 << i)))
+        {
+            vector->parts[length] |= (1 << i);
+        }
     }
 
     return vector;
@@ -379,19 +385,19 @@ bb* cycle_left_shift (bb* vector, int size_of_shift)
     }
 
     bb* new_vector1 = left_shift (vector, size_of_shift);
-    if (bb_errno!=ERR_OK)
+    if (new_vector1==NULL)
     {
         goto free1;
     }
 
-    bb* new_vector2 = rigth_shift (vector, vector->last_part * 8 + vector->last_bit+1 - size_of_shift);
-    if (bb_errno != ERR_OK)
+    bb* new_vector2 = rigth_shift (vector, vector->last_part * 8 + vector->last_bit + 1 - size_of_shift);
+    if (new_vector2 == NULL)
     {
         goto free2;
     }
 
     bb* new_vector = bb_disjunction (new_vector1, new_vector2);
-    if (bb_errno != ERR_OK)
+    if (new_vector == NULL)
     {
         goto free3;
     }
@@ -431,19 +437,19 @@ bb* cycle_rigth_shift (bb* vector, int size_of_shift)
 
     bb* new_vector1 = rigth_shift (vector, size_of_shift);
 
-    if (bb_errno != ERR_OK)
+    if (new_vector1 == NULL)
     {
         goto free1;
     }
 
-    bb* new_vector2 = left_shift (vector, vector->last_part * 8 + vector->last_bit +1- size_of_shift);
-    if (bb_errno != ERR_OK)
+    bb* new_vector2 = left_shift (vector, vector->last_part * 8 + vector->last_bit + 1 - size_of_shift);
+    if (new_vector2 == NULL)
     {
         goto free2;
     }
 
     bb* new_vector = bb_disjunction (new_vector1, new_vector2);
-    if (bb_errno != ERR_OK)
+    if (new_vector == NULL)
     {
         goto free3;
     }
@@ -464,4 +470,41 @@ free1:
     free (new_vector1);
 
     return NULL;
+}
+
+bb* bb_from_uint64_t (uint64_t num)
+{
+    bb* vector = calloc (1, sizeof (bb));
+
+    //checking whether memory is allocated
+    if (vector == NULL)
+    {
+        bb_errno = ERR_MEM_NOT_ALLOC;
+        return NULL;
+    }
+
+    for (int i = 0; i < 8; i++)
+    {
+        vector->parts[i] |= (num >> 8 * i);
+    }
+
+    int position = 0;
+    if (num>0)
+    {
+        position = trunc (log (num) / log (256));
+    }
+
+    vector->last_part = position;
+    vector->last_bit = 0;
+
+    for (int i = 7; i >=0; i--)
+    {
+        if (vector->parts[position]>>i)
+        {
+            vector->last_bit = i;
+            break;
+        }
+    }
+
+    return vector;
 }

@@ -13,7 +13,7 @@ int main ()
 
     bb* vector1 = bb_from_string (string1);
     bb* vector2 = bb_from_string (string2);
-    
+
     printf ("cycle left shift first vector %s\n", bb_to_string (cycle_left_shift (vector1, 10)));
 
     printf ("cycle rigth shift second vector %s\n", bb_to_string (cycle_rigth_shift (vector2, 6)));
