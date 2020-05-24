@@ -196,7 +196,7 @@ int tests_transform ()
 	bb *vec1 = NULL, *vec2 = NULL;
 	char* str1 = NULL, * str2 = NULL;
 
-	vec1 = bb_from_uint64_t (1573815);
+	vec1 = bb_from_uint64_t (0b110000000001110110111);
 	vec2 = bb_from_string ("110000000001110110111");
 	str1 = bb_to_string (vec1);
 	str2 = bb_to_string (vec2);
@@ -215,13 +215,123 @@ int tests_transform ()
 	return count;
 }
 
+int tests_corner_cases ()
+{
+	bb* vec = bb_from_string ("110101010101111101");
+
+	int count = 0;
+	bb* output_vec = NULL;
+	char* output_string = NULL;
+
+	output_vec = left_shift (vec, 142);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "1101010101011111010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") != 0)
+	{
+		LOG_ERR ("left_shift not work (110101010101111101 -142> != 1101010101011111010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)");
+		count++;
+	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+
+	output_vec = rigth_shift (vec, 18);
+	output_string = bb_to_string (output_vec);
+	if (strcmp (output_string, "0") != 0)
+	{
+		LOG_ERR ("rigth_shift not work (110101010101111101 -18> != 0)");
+		count++;
+	}
+	if (output_string != NULL) free (output_string);
+	if (output_vec != NULL) free (output_vec);
+
+	if (vec != NULL) free (vec);
+
+	return count;
+}
+
+int tests_with_random ()
+{
+	int count = 0;
+
+	srand (time (NULL));
+	bb* vec1 = bb_from_uint64_t (rand ());
+	bb* vec2 = bb_from_uint64_t (rand ());
+
+	//xor vec1 ^ vec2
+	bb* vec_xor = bb_xor (vec1, vec2);
+	char* str_vec_xor = bb_to_string (vec_xor);
+	if (vec_xor != NULL) free (vec_xor);
+
+
+	//~vec1
+	bb* not_vec1 = bb_inversion (vec1);
+	//~vec2
+	bb* not_vec2 = bb_inversion (vec2);
+
+	//first part ~vec1 & vec2
+	bb* first_part = bb_conjunction (not_vec1, vec2);
+	//second part vec1 & ~vec2
+	bb* second_part = bb_conjunction (vec1, not_vec2);
+
+	vec_xor = bb_disjunction (first_part, second_part);
+	char* str_other_vec_xor = bb_to_string (vec_xor);
+	if (vec_xor != NULL) free (vec_xor);
+	if (first_part != NULL) free (first_part);
+	if (second_part != NULL) free (second_part);
+	if (not_vec2 != NULL) free (not_vec2);
+	if (vec2 != NULL) free (vec2);
+
+
+	if (strcmp(str_vec_xor,str_other_vec_xor)!=0)
+	{
+		LOG_ERR ("(x xor y) not equal ((~x & y) | (x & ~y))");
+		count++;
+	}
+	if (str_vec_xor != NULL) free (str_vec_xor);
+	if (str_other_vec_xor != NULL) free (str_other_vec_xor);
+
+
+	bb* vector = bb_conjunction (vec1, not_vec1);
+	char* str_vector = bb_to_string (vector);
+
+	bb* zero_vec = calloc (1, sizeof (bb));
+	if (zero_vec == NULL)
+	{
+		zero_vec = calloc (1, sizeof (bb));
+	}
+	zero_vec->last_bit = vec1->last_bit;
+	zero_vec->last_part = vec1->last_part;
+	char* str_zero_vec = bb_to_string (zero_vec);
+
+	if (strcmp(str_zero_vec,str_vector)!=0)
+	{
+		LOG_ERR ("bb inversion not work");
+		count++;
+	}
+
+	if (vec1 != NULL) free (vec1);
+	if (not_vec1 != NULL) free (not_vec1);
+	if (vector != NULL) free (vector);
+	if (zero_vec != NULL) free (zero_vec);
+	if (str_zero_vec != NULL) free (str_zero_vec);
+	if (str_vector != NULL) free (str_vector);
+
+	return count;
+}
+
 int main ()
 {
 	int count=0;
 
 	count += tests_shifts ();
+	count += tests_corner_cases ();
 	count += tests_logical_operations();
 	count += tests_errors ();
+
+	count += tests_with_random ();
+	count += tests_with_random ();
+	count += tests_with_random ();
+	count += tests_with_random ();
 
 	if (count>0)
 	{

@@ -65,7 +65,7 @@ bb* rigth_shift (bb* vector, int size_of_shift)
     }
 
     //checking if the shift is possible
-    if (size_of_shift >= vector->last_part * 8 + 1 + vector->last_bit)
+    if (size_of_shift > vector->last_part * 8 + 1 + vector->last_bit)
     {
         bb_errno = ERR_BIG_SHIFT;
         return NULL;
@@ -105,6 +105,11 @@ bb* rigth_shift (bb* vector, int size_of_shift)
     //calculating the dimension of the resulting vector after the shift
     vector1->last_part = (vector->last_part * 8 + vector->last_bit - size_of_shift) / 8;
     vector1->last_bit = (vector->last_part * 8 + vector->last_bit - size_of_shift) % 8;
+
+    if (size_of_shift == vector->last_part * 8 + 1 + vector->last_bit)
+    {
+        vector1->last_bit = 0;
+    }
 
     return vector1;
 }
